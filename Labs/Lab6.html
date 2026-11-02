@@ -1,0 +1,223 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lab 6</title>
+
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        h1 {
+            font-size: 40px;
+        }
+
+        .vote-buttons button {
+            font-size: 40px;
+            padding: 15px 30px;
+            margin: 15px;
+            background-color: #e9e9ed;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+        }
+
+        textarea {
+            display: block;
+            width: 75%;
+            height: 150px;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        .comment-buttons button {
+            padding: 12px 25px;
+            margin: 5px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+
+        #commentsList p {
+            background-color: #eee;
+            padding: 10px;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Lab 6</h1>
+    <h2>Like or dislike</h2>
+
+    <div class="vote-buttons">
+        <button id="likeBtn">
+            👍 <span id="likeCount">0</span>
+        </button>
+
+        <button id="dislikeBtn">
+            👎 <span id="dislikeCount">0</span>
+        </button>
+    </div>
+
+    <h2>Comments</h2>
+
+    <textarea id="commentInput"
+        placeholder="Write a comment..."></textarea>
+
+    <div class="comment-buttons">
+        <button id="submitBtn">Submit</button>
+        <button id="clearBtn">Clear</button>
+    </div>
+
+    <div id="commentsList"></div>
+
+    <script>
+
+        // Save cookie
+        function setCookie(name, value) {
+            document.cookie = name + "=" +
+                encodeURIComponent(value) +
+                "; max-age=2592000; path=/";
+        }
+
+        // Read cookie
+        function getCookie(name) {
+            let cookies = document.cookie.split("; ");
+
+            for (let i = 0; i < cookies.length; i++) {
+                let parts = cookies[i].split("=");
+
+                if (parts[0] === name) {
+                    return decodeURIComponent(parts[1]);
+                }
+            }
+
+            return null;
+        }
+
+        // Delete cookie
+        function deleteCookie(name) {
+            document.cookie = name + "=; max-age=0; path=/";
+        }
+
+        // Initialize data
+        let likes = Number(getCookie("lab6_likes") || 0);
+        let dislikes = Number(getCookie("lab6_dislikes") || 0);
+
+        let vote = getCookie("lab6_vote");
+
+        let comments = JSON.parse(
+            getCookie("lab6_comments") || "[]"
+        );
+
+        // Get HTML elements
+        let likeBtn = document.getElementById("likeBtn");
+        let dislikeBtn = document.getElementById("dislikeBtn");
+        let submitBtn = document.getElementById("submitBtn");
+        let clearBtn = document.getElementById("clearBtn");
+        let commentInput = document.getElementById("commentInput");
+        let commentsList = document.getElementById("commentsList");
+
+        // Update page
+        function updatePage() {
+
+            document.getElementById("likeCount").textContent = likes;
+            document.getElementById("dislikeCount").textContent = dislikes;
+
+            // Prevent voting twice
+            likeBtn.disabled = vote !== null;
+            dislikeBtn.disabled = vote !== null;
+
+            // Prevent commenting twice
+            submitBtn.disabled = comments.length > 0;
+            commentInput.disabled = comments.length > 0;
+
+            // Display comments
+            commentsList.innerHTML = "";
+
+            for (let i = 0; i < comments.length; i++) {
+                let p = document.createElement("p");
+                p.textContent = comments[i];
+                commentsList.appendChild(p);
+            }
+        }
+
+        // Like event
+        likeBtn.addEventListener("click", function() {
+
+            if (vote === null) {
+                likes++;
+                vote = "like";
+
+                setCookie("lab6_likes", likes);
+                setCookie("lab6_vote", vote);
+
+                updatePage();
+            }
+        });
+
+        // Dislike event
+        dislikeBtn.addEventListener("click", function() {
+
+            if (vote === null) {
+                dislikes++;
+                vote = "dislike";
+
+                setCookie("lab6_dislikes", dislikes);
+                setCookie("lab6_vote", vote);
+
+                updatePage();
+            }
+        });
+
+        // Submit comment
+        submitBtn.addEventListener("click", function() {
+
+            let comment = commentInput.value.trim();
+
+            if (comment !== "" && comments.length === 0) {
+
+                comments.push(comment);
+
+                setCookie("lab6_comments", JSON.stringify(comments));
+
+                commentInput.value = "";
+
+                updatePage();
+            }
+        });
+
+        // Reset
+        clearBtn.addEventListener("click", function() {
+
+            deleteCookie("lab6_likes");
+            deleteCookie("lab6_dislikes");
+            deleteCookie("lab6_vote");
+            deleteCookie("lab6_comments");
+
+            likes = 0;
+            dislikes = 0;
+            vote = null;
+            comments = [];
+
+            commentInput.value = "";
+
+            updatePage();
+        });
+
+        // Load saved data
+        updatePage();
+
+    </script>
+
+</body>
+</html>
+
+
